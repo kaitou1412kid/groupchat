@@ -1,7 +1,7 @@
 <h1>Python Django Group chat using web socket</h1>
 
 <h2>Sign Up page</h2>
-![Alt text](images/image.png)
+<img src="images/image-1.png">
 
 <h2>Login Page</h2>
 ![Alt text](images/image-1.png)
