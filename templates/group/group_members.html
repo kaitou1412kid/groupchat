@@ -1,0 +1,9 @@
+
+{% block content %}
+  <h2>Members of {{ group.name }}</h2>
+  <ul>
+    {% for member in members %}
+      <li>{{ member.username }}</li>
+    {% endfor %}
+  </ul>
+{% endblock %}

@@ -1,0 +1,1 @@
+<h1>Python Django Group chat</h1>

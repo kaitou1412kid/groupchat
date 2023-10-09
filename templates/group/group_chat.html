@@ -1,0 +1,56 @@
+{% block content %}
+  <h2>Group Chat: {{ group.name }}</h2>
+  <div id="chat">
+    {% for message in messages %}
+      <p><strong>{{ message.user.username }}:</strong> {{ message.content }}</p>
+    {% endfor %}
+  </div>
+  <form method="post" id="message-form">
+    {% csrf_token %}
+    <textarea id="message-input" name="content" rows="3" required></textarea><br>
+    <button type="submit">Send</button>
+  </form>
+  <div id="group-data" data-group-id="{{ group.id }}"></div>
+  <script>
+    // JavaScript code for WebSocket functionality
+    var group_Id = document.getElementById('group-data').getAttribute('data-group-id');
+    var groupId = parseInt(group_Id)
+    // const chatSocket = new WebSocket(
+    //   `ws://127.0.0.1:8000/ws/group/group/${groupId}/`  // Replace with the actual WebSocket URL
+    // );
+    console.log("id",typeof(groupId) )
+    const chatSocket = new WebSocket(
+      `ws://${window.location.host}/ws/group/groupchat/${groupId}/`
+    )
+
+    // Handle incoming messages
+    chatSocket.onmessage = function(e) {
+      const data = JSON.parse(e.data);
+      const chat = document.getElementById('chat');
+      const message = document.createElement('p');
+      message.innerHTML = `<strong>${data.username}:</strong> ${data.message}`;
+      chat.appendChild(message);
+    };
+
+    // Handle form submission (sending messages)
+    const form = document.getElementById('message-form');
+    const messageInput = document.getElementById('message-input');
+
+    form.addEventListener('submit', function(event) {
+      event.preventDefault();
+      const messageContent = messageInput.value.trim();
+      if (messageContent) {
+        chatSocket.send(JSON.stringify({
+          'message': messageContent,
+          'group_id': groupId
+        }));
+        messageInput.value = '';
+      }
+    });
+
+    // Handle WebSocket connection closure
+    chatSocket.onclose = function(e) {
+      console.error('WebSocket closed unexpectedly');
+    };
+  </script>
+{% endblock %}

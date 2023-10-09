@@ -1,0 +1,9 @@
+
+{% block content %}
+  <h2>Create Group</h2>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Create Group</button>
+  </form>
+{% endblock %}
