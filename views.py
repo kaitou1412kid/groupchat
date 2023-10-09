@@ -29,7 +29,7 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            return redirect('create_group')
+            return redirect('group_list')
         else:
             messages.error(request, 'Login failed. Please check your username and password.')
     return render(request, 'registration/login.html')

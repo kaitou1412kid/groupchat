@@ -1,16 +1,18 @@
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from .models import Message, Group
+from asgiref.sync import sync_to_async
+
 
 class GroupChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.group_id = self.scope['url_route']['kwargs']['group_id']
         self.group = await self.get_group_or_error(self.group_id)
-
+        print("id",self.group_id)
 
         # Join the group channel
         await self.channel_layer.group_add(
-            self.group.group_name,
+            self.group.name,
             self.channel_name
         )
 
@@ -29,11 +31,13 @@ class GroupChatConsumer(AsyncWebsocketConsumer):
         user = self.scope['user']
 
         # Create and save the message to the database
-        message = Message.objects.create(
-            user=user,
-            group=self.group,
-            content=message_content
-        )
+        # message = await Message.objects.create(
+        #     user=user,
+        #     group=self.group,
+        #     content=message_content
+        # )
+
+        message = await self.save_message_to_database(user,group =self.group, content = message_content)
 
         # Send the message to the group
         await self.channel_layer.group_send(
@@ -49,10 +53,21 @@ class GroupChatConsumer(AsyncWebsocketConsumer):
     async def chat_message(self, event):
         await self.send(text_data=json.dumps(event))
 
-    async def get_group_or_error(self, group_id):
+    @sync_to_async
+    def save_message_to_database(self, user, group, content):
+        message = Message.objects.create(
+            user=user,
+            group=group,
+            content=content,
+        )
+        return message
+
+    @sync_to_async
+    def get_group_or_error(self, group_id):
         try:
             group = Group.objects.get(id=group_id)
-            if not self.scope['user'].groups.filter(id=group.id).exists():
+            print(self.scope['user'])
+            if not self.scope['user'].members.filter(id=group.id).exists():
                 raise ValueError('You do not have permission to join this group.')
             return group
         except Group.DoesNotExist:
